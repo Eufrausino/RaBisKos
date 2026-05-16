@@ -1,10 +1,35 @@
 -- Script de criação do banco de dados
 
 CREATE TABLE IF NOT EXISTS usuarios (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    usuario TEXT UNIQUE NOT NULL,
-    senha TEXT NOT NULL
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Usuario TEXT UNIQUE NOT NULL,
+    Senha TEXT NOT NULL
 );
 
--- Aqui você pode adicionar novas tabelas no futuro
--- CREATE TABLE IF NOT EXISTS mensagens (...);
+CREATE TABLE IF NOT EXISTS quadros (
+    IdQuadro INT PRIMARY KEY AUTOINCREMENT,
+    IdUsuarioDono INT, 
+    IdQuadroSala VARCHAR(50) UNIQUE,
+    FOREIGN KEY (IdUsuarioDono) REFERENCES usuarios(id) 
+);
+
+CREATE TABLE IF NOT EXISTS elementos (
+    IdElemento INT PRIMARY KEY AUTOINCREMENT,
+    IdQuadro INT, 
+    Tipo TEXT CHECK(Tipo IN ('Retangulo', 'Quadrado', 'Circulo', 'Triangulo', 'Linha', 'Seta')), 
+    PosX INT,
+    PosY INT,
+    Largura INT,
+    Altura INT, 
+    Cor INT,
+    Texto VARCHAR(50),
+    Versao INT,
+    FOREIGN KEY (IdQuadro) REFERENCES quadros(IdQuadro) 
+);
+
+CREATE TABLE IF NOT EXISTS usuarioQuadro (
+    IdUsuario INT,
+    IdQuadro INT, 
+	FOREIGN KEY (IdUsuario) REFERENCES usuarios(id),
+    FOREIGN KEY (IdQuadro) REFERENCES quadros(IdQuadro) 
+);
