@@ -1,12 +1,7 @@
 import sqlite3
-from .bd_base import obter_conexao
+from banco_de_dados.banco import obter_conexao
 
 class UsuarioModelo:
-    """
-    Data Access Object (DAO) para a tabela de usuários.
-    Encapsula todas as operações SQL desta entidade.
-    """
-    
     @staticmethod
     def inserir(usuario, senha):
         try:
