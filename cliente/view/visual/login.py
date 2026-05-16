@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt6.QtCore import Qt
 
-class PaginaHome(QWidget):
+class PaginaLogin(QWidget):
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout()

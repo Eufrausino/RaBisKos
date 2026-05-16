@@ -2,8 +2,8 @@ import socket
 import threading
 import json
 import struct
-from modelo.bd_base import inicializar_banco
-from controller.usuario_controller import UsuarioController
+from model.banco_de_dados.banco import inicializar_banco
+from controller.controladora_usuario import UsuarioController
 
 class ServidorRede:
     """

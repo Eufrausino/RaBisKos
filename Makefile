@@ -1,11 +1,14 @@
 SERVIDOR=servidor
 CLIENTE=cliente 
+COMPOSE=docker compose
 
 up:
-	docker compose up 
-
+	xhost +local:docker
+	$(COMPOSE) up
 down:
-	docker compose down
+	$(COMPOSE) down
 
 upd:
-	docker compose up -d
+	xhost +local:docker
+	$(COMPOSE) up -d
+	$(COMPOSE) logs -f $(CLIENTE)

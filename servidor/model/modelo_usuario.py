@@ -1,5 +1,5 @@
 import sqlite3
-from banco_de_dados.banco import obter_conexao
+from .banco_de_dados.banco import obter_conexao
 
 class UsuarioModelo:
     @staticmethod

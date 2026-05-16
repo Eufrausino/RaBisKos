@@ -34,9 +34,8 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir PyQt6
 
-# COPY . .
+COPY . .
 
-# CMD ["python", "main.py"]
+CMD ["python3", "main_cliente.py"]

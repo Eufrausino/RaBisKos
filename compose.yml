@@ -7,9 +7,10 @@ services:
     volumes:
       - ./servidor:/app
       - ./data:/app/data
-    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." python main.py
+    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." python3 main_servidor.py
     environment:
       - DB_PATH=/app/data/sistema.db
+      - PYTHONPATH=/app
     depends_on:
       - db-init
 
@@ -35,6 +36,6 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ${XDG_RUNTIME_DIR:-/run/user/1000}:/tmp/wayland-runtime
       - ${XAUTHORITY:-$HOME/.Xauthority}:/tmp/.Xauthority
-    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." python main.py
+    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." python3 main_cliente.py
     depends_on:
       - servidor

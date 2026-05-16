@@ -1,4 +1,4 @@
-from modelo.usuario_modelo import UsuarioModelo
+from model.modelo_usuario import UsuarioModelo
 
 class UsuarioController:
     """

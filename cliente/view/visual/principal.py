@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget
 from PyQt6.QtCore import Qt
-from view.pagina_login import PaginaLogin
-from view.pagina_registro import PaginaRegistro
-from view.pagina_home import PaginaHome
+from view.visual.login import PaginaLogin
+from view.visual.registro import PaginaRegistro
+from view.visual.home import PaginaHome
 
 class JanelaPrincipal(QMainWindow):
     def __init__(self):
@@ -22,8 +22,8 @@ class JanelaPrincipal(QMainWindow):
         self.setCentralWidget(self.pilha)
         
         # Conectar trocas de página internas da View
-        self.pagina_login.trocar_para_registro.connect(lambda: self.mudar_pagina(1))
-        self.pagina_registro.trocar_para_login.connect(lambda: self.mudar_pagina(0))
+        # self.pagina_login.trocar_para_registro.connect(lambda: self.mudar_pagina(1))
+        # self.pagina_registro.trocar_para_login.connect(lambda: self.mudar_pagina(0))
         
     def mudar_pagina(self, indice):
         self.pilha.setCurrentIndex(indice)

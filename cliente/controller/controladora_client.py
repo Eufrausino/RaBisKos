@@ -1,7 +1,7 @@
 import os
 from PyQt6.QtWidgets import QMessageBox
-from model.cliente_rede import ClienteRede
-from .worker import Worker
+from model.conexao_cliente import ClienteRede
+from .trabalhadora import Worker
 
 class ControladorCliente:
     def __init__(self, janela):
