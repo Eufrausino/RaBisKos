@@ -1,16 +1,14 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-from view.visual.principal import JanelaPrincipal
+from view.visual.home import JanelaNavegacao
 from controller.controladora_client import ControladorCliente
 
 def principal():
     app = QApplication(sys.argv)
     
-    # Inicializar View
-    janela = JanelaPrincipal()
+    janela = JanelaNavegacao()
     
-    # Inicializar Controller (ele cria o Model internamente)
-    # controlador = ControladorCliente(janela)
+    controlador = ControladorCliente(janela)
     
     janela.show()
     sys.exit(app.exec())
