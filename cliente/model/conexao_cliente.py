@@ -26,7 +26,8 @@ class ClienteRede:
         try:
             requisicao = {
                 "type": tipo_requisicao,
-                "payload": payload
+                #mudei aqui gustavo, antes era "payload" no lugar de "data"
+                "data": payload
             }
             dados = json.dumps(requisicao).encode('utf-8')
             cabecalho = struct.pack('>I', len(dados))
@@ -46,9 +47,19 @@ class ClienteRede:
                 dados += chunk
             
             resposta = json.loads(dados.decode('utf-8'))
+            # mudei aqui gustavo. acrescentei as 5 linhas de baixo antes de return. 
+            sucesso = resposta.get('status') == 'ok'
+            if sucesso:
+                mensagem = resposta.get('data', {}).get('mensagem', '')
+            else:
+                mensagem = resposta.get('message', '')
             return {
-                "sucesso": resposta.get('success', False),
-                "mensagem": resposta.get('message', '')
+                # "sucesso": resposta.get('success', False),
+                # "mensagem": resposta.get('message', '')
+
+                # mudei aqui gustavo.
+                "sucesso": sucesso,
+                "mensagem": mensagem
             }
         except Exception as e:
             self.socket = None 

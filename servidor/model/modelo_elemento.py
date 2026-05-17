@@ -1,5 +1,13 @@
 import sqlite3
-from typing import TypedDict, Literal, NotRequired
+#Mudei aqui, Eduardo
+#from typing import TypedDict, Literal, NotRequired
+from typing import TypedDict, Literal
+
+try:
+    from typing import NotRequired
+except ImportError:
+    from typing_extensions import NotRequired
+    
 from .banco_de_dados.modelo_banco import obter_conexao
 
 class ElementoDados(TypedDict):

@@ -16,12 +16,14 @@ class ControladorCliente:
         
         self.worker = None
 
-    def processar_login(self, usuario, senha, sala:None):
+    def processar_login(self, usuario, senha, sala=None):
         if not usuario or not senha:
             QMessageBox.warning(self.janela, "Erro", "Por favor, preencha todos os campos")
             return
             
-        payload = {"username": usuario, "password": senha, "sala": sala}
+        #payload = {"username": usuario, "password": senha, "sala": sala}
+        # Mudei aqui, gustavo. 
+        payload = {"nomeUsuario": usuario, "senhaUsuario": senha, "sala": sala}
         self.iniciar_requisicao_background('LOGIN', payload)
 
     def processar_registro(self, usuario, senha):
@@ -29,7 +31,9 @@ class ControladorCliente:
             QMessageBox.warning(self.janela, "Erro", "Por favor, preencha todos os campos")
             return
             
-        payload = {"username": usuario, "password": senha}
+        #payload = {"username": usuario, "password": senha}
+        # mudei aqui, gustavo.
+        payload = {"nomeUsuario": usuario, "senhaUsuario": senha}
         self.iniciar_requisicao_background('REGISTER', payload)
 
     def iniciar_requisicao_background(self, tipo, payload):

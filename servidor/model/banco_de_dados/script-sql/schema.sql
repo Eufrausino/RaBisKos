@@ -7,14 +7,14 @@ CREATE TABLE IF NOT EXISTS usuarios (
 );
 
 CREATE TABLE IF NOT EXISTS quadros (
-    IdQuadro INT PRIMARY KEY AUTOINCREMENT,
+    IdQuadro INTEGER PRIMARY KEY AUTOINCREMENT,
     IdUsuarioDono INT, 
     IdQuadroSala VARCHAR(50) UNIQUE,
     FOREIGN KEY (IdUsuarioDono) REFERENCES usuarios(id) 
 );
 
 CREATE TABLE IF NOT EXISTS elementos (
-    IdElemento INT PRIMARY KEY AUTOINCREMENT,
+    IdElemento INTEGER PRIMARY KEY AUTOINCREMENT,
     IdQuadro INT, 
     Tipo TEXT CHECK(Tipo IN ('Retangulo', 'Quadrado', 'Circulo', 'Triangulo', 'Linha', 'Seta')), 
     PosX INT,
