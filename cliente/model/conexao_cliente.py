@@ -2,6 +2,7 @@ import socket
 import json
 import struct
 
+#template
 class ClienteRede:
     def __init__(self, host='localhost', porta=5000):
         self.host = host

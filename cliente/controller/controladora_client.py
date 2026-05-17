@@ -40,6 +40,7 @@ class ControladorCliente:
         self.worker.sinal_erro.connect(self.ao_ocorrer_erro)
         
         self.worker.start()
+        print(f"Enviando {tipo} para o servidor")
 
     def ao_receber_resposta(self, resposta):
         self.janela.definir_carregamento(False)

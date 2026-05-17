@@ -16,7 +16,6 @@ class PaginaRegistro(QWidget):
         layout = QVBoxLayout()
         
         self.label_titulo = QLabel("Tela de Registro")
-        # self.label_titulo.setObjectName("titulo") 
         self.label_titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.label_titulo)
 
@@ -30,6 +29,7 @@ class PaginaRegistro(QWidget):
         self.label_senha = QLabel("Senha:")
         self.input_senha = QLineEdit()
         self.input_senha.setPlaceholderText("Digite sua senha...")
+        #NOTE: Senha fica ..... e não a string na tela do usuário
         self.input_senha.setEchoMode(QLineEdit.EchoMode.Password)         
         layout.addWidget(self.label_senha)
         layout.addWidget(self.input_senha)
@@ -42,11 +42,13 @@ class PaginaRegistro(QWidget):
 
         self.setLayout(layout)
 
+    #NOTE: Entrada/Input de dados e sinal para servidor
     def ao_registrar(self):
         usuario = self.input_usuario.text()
         senha = self.input_senha.text()
         
         if usuario and senha:
             print(f"Tentativa de registro: Usuário='{usuario}', Senha='{senha}'")
+            self.dados_registro.emit(usuario, senha)
         else:
             QMessageBox.warning(self, "Erro", "Preencha usuário e senha!")
