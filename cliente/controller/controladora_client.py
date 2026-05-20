@@ -15,6 +15,11 @@ class ControladorCliente:
         self.janela.pagina_registro.dados_registro.connect(self.processar_registro)
         
         self.worker = None
+        
+        # variaveis da sessao
+        self.id_usuario = None
+        self.id_quadro = None
+        self.id_quadro_sala = None
 
     def processar_login(self, usuario, senha, sala=None):
         if not usuario or not senha:
@@ -49,12 +54,39 @@ class ControladorCliente:
     def ao_receber_resposta(self, resposta):
         self.janela.definir_carregamento(False)
         if resposta['sucesso']:
-            QMessageBox.information(self.janela, "Sucesso", resposta['mensagem'])
+            dados = resposta.get('dados', {})
             
-            if self.janela.obter_indice_atual() == 0:
+            # Sucesso no login
+            if 'idUsuario' in dados:
+                self.id_usuario = dados.get('idUsuario')
+                sala_digitada = dados.get('sala') 
+                
+                # se tiver sala tenta entrar
+                if sala_digitada:
+                    payload = {"idUsuario": self.id_usuario, "idQuadroSala": sala_digitada}
+                    self.iniciar_requisicao_background('JOIN_QUADRO', payload)
+                else:
+                    payload = {"idUsuarioDono": self.id_usuario}
+                    self.iniciar_requisicao_background('CREATE_QUADRO', payload)
+            
+            # sucesso no entrar quadro
+            elif 'idQuadro' in dados:
+                self.id_quadro = dados.get('idQuadro')
+                self.id_quadro_sala = dados.get('idQuadroSala')
+                
+                QMessageBox.information(
+                    self.janela, 
+                    "Conectado ao Quadro", 
+                    f"Entrou na sala: {self.id_quadro_sala}"
+                )
+                
+                self.janela.pagina_principal.definir_sala(self.id_quadro_sala)
                 self.janela.mudar_pagina(2)
-            elif self.janela.obter_indice_atual() == 1:
-                self.janela.mudar_pagina(0)
+                
+            else:
+                QMessageBox.information(self.janela, "Sucesso", resposta['mensagem'])
+                if self.janela.obter_indice_atual() == 1:
+                    self.janela.mudar_pagina(0)
         else:
             QMessageBox.critical(self.janela, "Erro", resposta['mensagem'])
 

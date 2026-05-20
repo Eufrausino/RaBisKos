@@ -59,7 +59,8 @@ class ClienteRede:
 
                 # mudei aqui gustavo.
                 "sucesso": sucesso,
-                "mensagem": mensagem
+                "mensagem": mensagem,
+                "dados": resposta.get('data', {})
             }
         except Exception as e:
             self.socket = None 

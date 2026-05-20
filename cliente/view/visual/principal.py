@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QToolBar, QPushButton, QMenu, QInputDialog, QToolButton
+from PyQt6.QtWidgets import QMainWindow, QWidget, QToolBar, QPushButton, QMenu, QInputDialog, QToolButton, QLabel
 from PyQt6.QtGui import QPainter, QPen, QImage, QColor
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRectF
 from ..componentes import Retangulo, Circulo, Seta, Linha, Texto
@@ -35,6 +35,8 @@ class JanelaPrincipal(QMainWindow):
         self.ultima_posicao = QPoint()
         #NOTE: Define cor default como preto
         self.cor_atual = QColor(Qt.GlobalColor.black)
+        #NOTE: ID da sala atual
+        self.id_sala = None
         #NOTE: FOCA
         self.setFocus()
 
@@ -197,6 +199,11 @@ class JanelaPrincipal(QMainWindow):
         
         toolbar.addAction("Limpar", self.limpar_quadro)
         
+        # exibir nome da sala
+        self.label_sala = QLabel("Sala: -")
+        self.label_sala.setStyleSheet("font-weight: bold; font-size: 12px; color: #2c3e50; margin-left: 10px; margin-right: 15px;")
+        toolbar.addWidget(self.label_sala)
+        
         btn_componentes = QPushButton("Componentes")
         menu_principal = QMenu(self)
         
@@ -263,3 +270,7 @@ class JanelaPrincipal(QMainWindow):
             self.tamanho_seta_atual = 80 #NOTE: Default caso cancele
             
         self.statusBar().showMessage(f"Seta {direcao} preparada. Clique para inserir.")
+
+    def definir_sala(self, id_sala):
+        self.id_sala = id_sala
+        self.label_sala.setText(f"Sala: {id_sala}")
