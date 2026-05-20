@@ -7,7 +7,8 @@ class PaginaLogin(QWidget):
     def __init__(self):
         super().__init__()
         self.init_ui()
-
+    
+    #NOTE: Personaliza UI
     def init_ui(self):
         layout = QVBoxLayout()
 

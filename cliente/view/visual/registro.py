@@ -1,8 +1,10 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 
 class PaginaRegistro(QWidget):
     dados_registro = pyqtSignal(str,str)
+    voltar_login = pyqtSignal()
     def __init__(self):
         super().__init__()
 
@@ -39,6 +41,11 @@ class PaginaRegistro(QWidget):
         self.btn_registrar.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_registrar.clicked.connect(self.ao_registrar)
         layout.addWidget(self.btn_registrar)
+
+        self.btn_voltar = QPushButton("Voltar para Login")
+        self.btn_voltar.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_voltar.clicked.connect(self.voltar_login.emit) 
+        layout.addWidget(self.btn_voltar)
 
         self.setLayout(layout)
 

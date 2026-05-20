@@ -3,6 +3,7 @@ from .registro import PaginaRegistro
 from .login import PaginaLogin
 from .principal import JanelaPrincipal
 
+#NOTE: Movimentação entre telas/páginas/janelas
 class JanelaNavegacao(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -26,9 +27,12 @@ class JanelaNavegacao(QMainWindow):
         container.setLayout(layout_principal)
         self.setCentralWidget(container)
 
-        # (Login -> Registro)
+        #NOTE: (Login -> Registro)
         self.pagina_login.payload_registro.connect(lambda: self.mudar_pagina(1))
+        #NOTE: (Registro -> Login) - Quando registra com sucesso
         self.pagina_registro.dados_registro.connect(lambda: self.mudar_pagina(0))
+        #NOTE: Registro -> Login - quando clica em voltar
+        self.pagina_registro.voltar_login.connect(lambda: self.mudar_pagina(0))
 
     def mudar_pagina(self, indice):
         self.stack.setCurrentIndex(indice)
