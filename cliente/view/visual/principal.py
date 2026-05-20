@@ -126,7 +126,7 @@ class JanelaPrincipal(QMainWindow):
                     self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
                     
             elif self.ferramenta_ativa == "TEXTO":
-                novo = Texto(pos.x(), pos.y(), self.texto_atual, self.tamanho_fonte_atual, self.cor_atual)
+                novo = Texto(pos.x(), pos.y(), self.dimensoes['w'], self.dimensoes['h'], self.texto_atual, self.tamanho_fonte_atual, self.cor_atual)
                 if self.espaco_livre(novo.caixa_contorno()):
                     self.elementos.append(novo)
                 else:

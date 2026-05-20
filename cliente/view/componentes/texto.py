@@ -3,10 +3,12 @@ from PyQt6.QtCore import Qt, QPoint, QRectF
 from .formas import Forma
 
 class Texto(Forma):
-    def __init__(self, x, y, texto, tamanho_fonte, cor):
+    def __init__(self, x, y, w, h,texto, tamanho_fonte, cor):
         super().__init__(x, y, cor)
         self.texto = texto
         self.tamanho_fonte = tamanho_fonte
+        self.w = w 
+        self.h = h
 
     def desenhar(self, painter: QPainter):
         painter.setPen(QPen(self.cor))
@@ -23,3 +25,7 @@ class Texto(Forma):
         
         rect = QRectF(self.x, self.y - altura_estimada, largura_estimada, altura_estimada)
         return rect.contains(p.x(), p.y())
+
+    def caixa_contorno(self):
+        return QRectF(self.x - self.w/2, self.y - self.h/2, self.w, self.h)
+

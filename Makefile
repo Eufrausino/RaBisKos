@@ -10,5 +10,5 @@ down:
 
 upd:
 	xhost +local:docker
-	$(COMPOSE) up -d --build
+	$(COMPOSE) up -d
 	$(COMPOSE) logs -f $(CLIENTE)
