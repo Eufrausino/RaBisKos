@@ -14,7 +14,7 @@ upd:
 	# $(COMPOSE) logs -f $(CLIENTE)
 
 mais_cliente:
-	docker compose run --rm cliente
+	$(COMPOSE) run --rm $(CLIENTE)
 
 menos_orfaos:
-	docker compose down --remove-orphans
+	$(COMPOSE) down --remove-orphans
