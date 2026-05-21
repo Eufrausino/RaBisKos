@@ -1,3 +1,5 @@
+import dataclasses
+import logging
 from model.modelo_elemento import ElementoModelo
 from view.response_view import ResponseView
 
@@ -8,11 +10,11 @@ class ElementController:
     def create_element(self, message: dict, client_socket) -> dict:
         data = message.get("data", {})
 
-        # print(f"[DEBUG] JSON recebido pelo servidor: {data}")
-        # if 'texto' in data:
-        #     print(f"[DEBUG] Sucesso: Texto '{data['texto']}' recebido")
-        # else:
-        #     print(f"[ERRO] O campo 'texto' não chegou ao servidor! Chaves recebidas: {list(data.keys())}")
+        logging.debug(f"[DEBUG] JSON recebido pelo servidor: {data}")
+        if 'texto' in data:
+            logging.debug(f"[DEBUG] Sucesso: Texto '{data['texto']}' recebido")
+        else:
+            logging.debug(f"[ERRO] O campo 'texto' não chegou ao servidor! Chaves recebidas: {list(data.keys())}")
 
         id_quadro = data.get("idQuadro")
         
@@ -23,11 +25,13 @@ class ElementController:
         if sucesso:
             broadcast_msg = ResponseView.event("ELEMENT_CREATED", data)
             
-            # print(f"[DEBUG SERVIDOR] Disparando broadcast para o quadro {id_quadro} com: {data.get('tipo')}")
+            logging.debug(f"[DEBUG SERVIDOR] Disparando broadcast para o quadro {id_quadro} com: {data.get('tipo')}")
 
+            data["idElemento"] = msg
+            broadcast_msg = ResponseView.event("ELEMENT_CREATED", data)
             self.connection_manager.broadcast_to_board(id_quadro, broadcast_msg, exclude_socket=client_socket)
             
-            return ResponseView.success("CREATE_ELEMENT_RESPONSE", {"mensagem": msg})
+            return ResponseView.success("CREATE_ELEMENT_RESPONSE", {"idElemento": msg})
         else:
             return ResponseView.error("ERROR_CREATE_ELEMENTO", msg)
 

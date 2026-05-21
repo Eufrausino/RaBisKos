@@ -1,5 +1,6 @@
 import json
 import struct
+import logging
 
 class ConnectionManager:
     def __init__(self):
@@ -11,14 +12,14 @@ class ConnectionManager:
             
         if client_socket not in self.salas[id_quadro]:
             self.salas[id_quadro].append(client_socket)
-            print(f"[MANAGER] Cliente adicionado à sala {id_quadro}. Total na sala: {len(self.salas[id_quadro])}")
+            logging.debug(f"[MANAGER] Cliente adicionado à sala {id_quadro}. Total na sala: {len(self.salas[id_quadro])}")
 
     def remove_client(self, client_socket) -> None:
         salas_a_remover = []
         for id_quadro, sockets in self.salas.items():
             if client_socket in sockets:
                 sockets.remove(client_socket)
-                print(f"[MANAGER] Cliente removido da sala {id_quadro}")
+                logging.debug(f"[MANAGER] Cliente removido da sala {id_quadro}")
   
             if not sockets:
                 salas_a_remover.append(id_quadro)
@@ -40,7 +41,7 @@ class ConnectionManager:
                 try:
                     client_socket.sendall(pacote)
                 except Exception as e:
-                    print(f"[MANAGER] Erro ao enviar broadcast para um cliente: {e}")
+                    logging.debug(f"[MANAGER] Erro ao enviar broadcast para um cliente: {e}")
                     sockets_falhos.append(client_socket)
 
         for falho in sockets_falhos:

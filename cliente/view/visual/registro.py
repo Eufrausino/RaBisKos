@@ -1,3 +1,4 @@
+import logging
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QGraphicsDropShadowEffect, QMessageBox
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPixmap, QColor
@@ -82,13 +83,13 @@ class PaginaRegistro(QWidget):
         layout_principal.addStretch()
         
         self.setLayout(layout_principal)
-
+ 
     def ao_registrar(self):
         usuario = self.input_usuario.text()
         senha = self.input_senha.text()
         
         if usuario and senha:
-            print(f"Tentativa de registro: Usuário='{usuario}', Senha='{senha}'")
+            logging.debug(f"Tentativa de registro: Usuário='{usuario}', Senha='{senha}'")
             self.dados_registro.emit(usuario, senha)
         else:
             QMessageBox.warning(self, "Erro", "Preencha usuário e senha!")

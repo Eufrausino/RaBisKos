@@ -1,4 +1,5 @@
 import sqlite3
+import logging
 from .banco_de_dados.banco import obter_conexao
 
 class UsuarioModelo:
@@ -26,5 +27,5 @@ class UsuarioModelo:
             conexao.close()
             return resultado
         except Exception as e:
-            print(f"Erro ao buscar usuário: {e}")
+            logging.debug(f"Erro ao buscar usuário: {e}")
             return None

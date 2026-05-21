@@ -1,5 +1,6 @@
 import socket
 import threading
+import logging
 from model.banco_de_dados.banco import inicializar_banco
 from controller.client_handler import ClientHandler
 from controller.server_controller import ServerController
@@ -24,7 +25,7 @@ class ServidorRede:
         self.servidor.bind((self.host, self.porta))
         self.servidor.listen()
         
-        print(f"[ESCUTANDO] Servidor MVC rodando em {self.host}:{self.porta}")
+        logging.debug(f"[ESCUTANDO] Servidor MVC rodando em {self.host}:{self.porta}")
         
         try:
             while True:
@@ -32,9 +33,9 @@ class ServidorRede:
                 handler = ClientHandler(self.server_controller) 
                 thread = threading.Thread(target=handler.handle_client, args=(socket_cliente, endereco))
                 thread.start()
-                print(f"[CONEXÕES ATIVAS] {threading.active_count() - 1}")
+                logging.debug(f"[CONEXÕES ATIVAS] {threading.active_count() - 1}")
         except KeyboardInterrupt:
-            print("\n[DESLIGANDO] Servidor parado pelo usuário.")
+            logging.debug("\n[DESLIGANDO] Servidor parado pelo usuário.")
         finally:
             if self.servidor:
                 self.servidor.close()

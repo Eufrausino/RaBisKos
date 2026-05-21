@@ -10,6 +10,7 @@ class Forma:
         self.y = y
         self.cor = QColor(cor)
         self.selecionada = False
+        self.id_elemento = None  
 
     #NOTE: Desenha
     @abstractmethod

@@ -1,4 +1,5 @@
 import os
+import logging
 from PyQt6.QtWidgets import QMessageBox
 from model.conexao_cliente import ClienteRede
 from .trabalhadora import Worker
@@ -6,6 +7,7 @@ from .trabalhadora import Worker
 class ControladorCliente:
     def __init__(self, janela):
         self.janela = janela
+        self.fila_elementos_pendentes = []  # fila de elementos criados para controlar acesso simultaneo/alteração no arquivo seguidamente (tcp garante integra ordenada)
         
         host = os.environ.get('SERVER_HOST', 'localhost')
         porta = int(os.environ.get('SERVER_PORT', 5000))
@@ -14,6 +16,8 @@ class ControladorCliente:
         self.janela.pagina_login.solicitar_login.connect(self.processar_login)
         self.janela.pagina_registro.dados_registro.connect(self.processar_registro)
         self.janela.pagina_principal.elemento_criado.connect(self.processar_criacao_elemento)
+        self.janela.pagina_principal.elemento_atualizado.connect(self.processar_atualizacao_elemento)
+        self.janela.pagina_principal.elemento_deletado.connect(self.processar_remocao_elemento)
 
         self.worker = None
         
@@ -48,7 +52,7 @@ class ControladorCliente:
         self.worker.sinal_erro.connect(self.ao_ocorrer_erro)
         
         self.worker.start()
-        print(f"Enviando {tipo} para o servidor")
+        logging.debug(f"Enviando {tipo} para o servidor")
 
     def ao_receber_resposta(self, resposta):
         self.janela.definir_carregamento(False)
@@ -98,6 +102,18 @@ class ControladorCliente:
         self.janela.definir_carregamento(False)
         QMessageBox.critical(self.janela, "Erro de Sistema", f"Ocorreu um erro inesperado: {mensagem_erro}")
 
+    def processar_criacao_elemento(self, dados_elemento):
+        if not self.id_quadro:
+            return 
+            
+        dados_elemento["idQuadro"] = self.id_quadro
+
+        # Como o elemento acabou de ser desenhado na tela, ele é o último da lista 'elementos'
+        elemento_local = self.janela.pagina_principal.elementos[-1]
+        self.fila_elementos_pendentes.append(elemento_local) 
+        
+        # Envia a requisição sem esperar resposta (a Thread de escuta vai apanhar a resposta)
+        self.modelo.enviar_requisicao('CREATE_ELEMENTO', dados_elemento, esperar_resposta=False)
 
     def iniciar_escuta_tempo_real(self):
         from .trabalhadora import ThreadEscuta
@@ -112,13 +128,41 @@ class ControladorCliente:
         if tipo == "ELEMENT_CREATED":
             self.janela.pagina_principal.adicionar_elemento_rede(dados)
 
+        elif tipo == "CREATE_ELEMENT_RESPONSE":
+            if self.fila_elementos_pendentes: 
+                elemento_criado = self.fila_elementos_pendentes.pop(0) # Retira o elemento mais antigo da fila e atualiza o seu ID
+                elemento_criado.id_elemento = dados.get("idElemento")
+                logging.debug(f"[SUCESSO] Elemento local associado ao ID {elemento_criado.id_elemento} do banco.")
+
+        elif tipo == "ELEMENT_UPDATED":
+            self.janela.pagina_principal.atualizar_elemento_rede(dados)
+
+        elif tipo == "ELEMENT_DELETED":
+            id_el = dados.get("idElemento")
+            self.janela.pagina_principal.remover_elemento_rede(id_el)
+
         elif tipo == "GET_BOARD_RESPONSE":
             if 'elementos' in dados:
                 for el in dados['elementos']:
                     self.janela.pagina_principal.adicionar_elemento_rede(el)
 
-    def processar_criacao_elemento(self, dados_elemento):
+        elif tipo == "GET_BOARD_RESPONSE":
+            if 'elementos' in dados:
+                for el in dados['elementos']:
+                    self.janela.pagina_principal.adicionar_elemento_rede(el)
+    
+    def processar_atualizacao_elemento(self, dados_elemento):
         if not self.id_quadro:
             return 
         dados_elemento["idQuadro"] = self.id_quadro
-        self.modelo.enviar_requisicao('CREATE_ELEMENTO', dados_elemento, esperar_resposta=False)
+        self.modelo.enviar_requisicao('UPDATE_ELEMENTO', dados_elemento, esperar_resposta=False)
+
+    def processar_remocao_elemento(self, id_elemento):
+        if not self.id_quadro:
+            return 
+        payload = {
+            "idElemento": id_elemento,
+            "idQuadro": self.id_quadro
+        }
+        self.modelo.enviar_requisicao('DELETE_ELEMENTO', payload, esperar_resposta=False)
+

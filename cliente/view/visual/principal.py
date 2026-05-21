@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QToolBar, QPushButton, QMenu, 
 from PyQt6.QtGui import QPainter, QPen, QImage, QColor
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRectF
 import json
+import logging
 from ..componentes import Retangulo, Circulo, Seta, Linha, Texto
 
 class JanelaPrincipal(QMainWindow):
@@ -10,6 +11,8 @@ class JanelaPrincipal(QMainWindow):
     #NOTE:INDICA COMPONENTE, ULTIMA_POS_X, ULTIMA_POS_Y, POS_ATUAL_X, POS_ATUAL_Y e COR
     ponto_desenhado = pyqtSignal(str,int, int, int, int,str)
     elemento_criado = pyqtSignal(dict)
+    elemento_atualizado = pyqtSignal(dict)
+    elemento_deletado = pyqtSignal(int)
     def __init__(self):
         super().__init__()
         #NOTE: Permite mudar de cor - qt faz perder foco quando interage com outro widget
@@ -63,6 +66,22 @@ class JanelaPrincipal(QMainWindow):
             if self.ferramenta_ativa == "MAO" and self.elemento_selecionado:
                 self.elemento_selecionado.cor = nova_cor
                 self.statusBar().showMessage(f"Elemento atualizado para a cor {tecla}")
+
+                if self.elemento_selecionado.id_elemento is not None:
+                    dados = {
+                        "idElemento": self.elemento_selecionado.id_elemento,
+                        "tipo": self.mapear_tipo_objeto(self.elemento_selecionado),
+                        "posx": self.elemento_selecionado.x,
+                        "posy": self.elemento_selecionado.y,
+                        "largura": getattr(self.elemento_selecionado, 'w', 0) if not isinstance(self.elemento_selecionado, Seta) else getattr(self.elemento_selecionado, 'tamanho', 80),
+                        "altura": getattr(self.elemento_selecionado, 'h', 0) if not isinstance(self.elemento_selecionado, Texto) else getattr(self.elemento_selecionado, 'tamanho_fonte', 24),
+                        "cor": self.obter_codigo_cor(self.elemento_selecionado.cor),
+                        "texto": self.obter_texto_objeto(self.elemento_selecionado),
+                        "versao": 1
+                    }
+                    self.elemento_atualizado.emit(dados)
+                    logging.debug(f"[DEBUG - ATUALIZANDO COR] Emitindo sinal: {dados}")
+
             else:
                 self.statusBar().showMessage(f"Cor do pincel alterada para a cor {tecla}")
                 
@@ -74,6 +93,10 @@ class JanelaPrincipal(QMainWindow):
         #NOTE: DELETE
         if event.key() in (Qt.Key.Key_Delete, Qt.Key.Key_Backspace):
             if self.ferramenta_ativa == "MAO" and self.elemento_selecionado:
+                if self.elemento_selecionado.id_elemento is not None:
+                    self.elemento_deletado.emit(self.elemento_selecionado.id_elemento)
+                    logging.debug(f"[DEBUG - DELETANDO] Emitindo sinal para ID: {self.elemento_selecionado.id_elemento}")
+
                 self.elementos.remove(self.elemento_selecionado)
                 self.elemento_selecionado = None
                 self.statusBar().showMessage("Elemento deletado.")
@@ -172,9 +195,9 @@ class JanelaPrincipal(QMainWindow):
                     "texto": texto_envio
                 }
                 self.elemento_criado.emit(dados)
-                print(f"[DEBUG - DISPARANDO EMIT] {dados}")
+                logging.debug(f"[DEBUG - DISPARANDO EMIT] {dados}")
         except Exception as e:
-            print(f"ERRO CRÍTICO NO MOUSE PRESS: {e}")
+            logging.debug(f"ERRO CRÍTICO NO MOUSE PRESS: {e}")
 
     def mouseReleaseEvent(self, event):
         
@@ -195,11 +218,27 @@ class JanelaPrincipal(QMainWindow):
                         "cor": self.obter_codigo_cor(self.cor_atual),
                         "texto": json.dumps(pontos) # Empacota os pontos como String (JSON)
                     }
-                    print(f"[DEBUG - ENVIANDO] {dados}")
+                    logging.debug(f"[DEBUG - ENVIANDO] {dados}")
                     self.elemento_criado.emit(dados)
                 
                 # Limpa a variável para o próximo desenho local
                 self.caminho_em_construcao = None
+
+            elif self.ferramenta_ativa == "MAO" and self.elemento_selecionado:
+                if self.elemento_selecionado.id_elemento is not None:
+                    dados = {
+                        "idElemento": self.elemento_selecionado.id_elemento,
+                        "tipo": self.mapear_tipo_objeto(self.elemento_selecionado),
+                        "posx": self.elemento_selecionado.x,
+                        "posy": self.elemento_selecionado.y,
+                        "largura": getattr(self.elemento_selecionado, 'w', 0) if not isinstance(self.elemento_selecionado, Seta) else getattr(self.elemento_selecionado, 'tamanho', 80),
+                        "altura": getattr(self.elemento_selecionado, 'h', 0) if not isinstance(self.elemento_selecionado, Texto) else getattr(self.elemento_selecionado, 'tamanho_fonte', 24),
+                        "cor": self.obter_codigo_cor(self.elemento_selecionado.cor),
+                        "texto": self.obter_texto_objeto(self.elemento_selecionado),
+                        "versao": 1
+                    }
+                    self.elemento_atualizado.emit(dados)
+                    logging.debug(f"[DEBUG - ATUALIZANDO POSIÇÃO] Emitindo sinal: {dados}")
 
     #NOTE: Impede colocar forma sobre forma, evitar problemas no banco
     def espaco_livre(self, nova_caixa: QRectF) -> bool:
@@ -354,6 +393,7 @@ class JanelaPrincipal(QMainWindow):
 
     def adicionar_elemento_rede(self, dados):
         tipo = dados.get("tipo")
+        id_elemento = dados.get("idElemento")
         
         mapa_cores = {
             0: QColor(Qt.GlobalColor.black), 1: QColor(Qt.GlobalColor.red),
@@ -365,20 +405,19 @@ class JanelaPrincipal(QMainWindow):
         w, h = dados.get("largura", 100), dados.get("altura", 100)
         texto = dados.get("texto", "")
 
+        novo = None
+
         if tipo == "Retangulo":
             novo = Retangulo(px, py, w, h, cor)
-            self.elementos.append(novo)
         elif tipo == "Circulo":
             novo = Circulo(px, py, w, h, cor)
-            self.elementos.append(novo)
         elif tipo == "Seta":
             dir_seta = texto if texto else "DIR"
             novo = Seta(px, py, cor, dir_seta, w)
-            self.elementos.append(novo)
 
         elif tipo == "Texto":
             try:
-                print(f"DEBUG RECEBIDO -> Texto: {texto}, X: {px}, Y: {py}, Cor: {cor}")
+                logging.debug(f"DEBUG RECEBIDO -> Texto: {texto}, X: {px}, Y: {py}, Cor: {cor}")
                 # O tamanho da fonte foi enviado embutido na variável 'h' (altura)
                 tamanho_fonte = int(h) if int(h) > 0 else 24
                 
@@ -389,10 +428,8 @@ class JanelaPrincipal(QMainWindow):
                 # para evitar que a caixa de contorno quebre a renderização do componente
                 novo = Texto(int(px), int(py), 400, 400, frase, tamanho_fonte, cor)
                 
-                self.elementos.append(novo)
-                
             except Exception as e:
-                print(f"Erro ao renderizar Texto da rede: {e}")
+                logging.debug(f"Erro ao renderizar Texto da rede: {e}")
 
         elif tipo == "Linha":
             try:
@@ -400,9 +437,85 @@ class JanelaPrincipal(QMainWindow):
                 novo = Linha(cor)
                 for p in pontos:
                     novo.pontos.append(QPoint(p["x"], p["y"]))
-                self.elementos.append(novo)
             except Exception as e:
-                print(f"Erro ao renderizar linha da rede: {e}")
+                logging.debug(f"Erro ao renderizar linha da rede: {e}")
+        
+        if novo:
+            novo.id_elemento = id_elemento 
+            self.elementos.append(novo)
             
-        print(f"DEBUG RECEBIDO -> Texto: {texto}, X: {px}, Y: {py}, Cor: {cor}")
+        logging.debug(f"DEBUG RECEBIDO -> Texto: {texto}, X: {px}, Y: {py}, Cor: {cor}")
         self.update()
+
+    def mapear_tipo_objeto(self, obj):
+        from ..componentes import Retangulo, Circulo, Seta, Linha, Texto
+        if isinstance(obj, Retangulo):
+            return "Retangulo"
+        elif isinstance(obj, Circulo):
+            return "Circulo"
+        elif isinstance(obj, Seta):
+            return "Seta"
+        elif isinstance(obj, Texto):
+            return "Texto"
+        elif isinstance(obj, Linha):
+            return "Linha"
+        return "Retangulo"
+
+    def obter_texto_objeto(self, obj):
+        from ..componentes import Texto, Seta, Linha
+        if isinstance(obj, Texto):
+            return obj.texto
+        elif isinstance(obj, Seta):
+            return obj.direcao
+        elif isinstance(obj, Linha):
+            pontos = [{"x": p.x(), "y": p.y()} for p in obj.pontos]
+            return json.dumps(pontos)
+        return ""
+
+    def atualizar_elemento_rede(self, dados):
+        id_elemento = dados.get("idElemento")
+        for el in self.elementos:
+            if el.id_elemento == id_elemento:
+                # Atualiza dados posicionais comuns
+                el.x = dados.get("posx", el.x)
+                el.y = dados.get("posy", el.y)
+                
+                mapa_cores = {
+                    0: QColor(Qt.GlobalColor.black), 1: QColor(Qt.GlobalColor.red),
+                    2: QColor(Qt.GlobalColor.blue), 3: QColor(Qt.GlobalColor.green),
+                }
+                el.cor = mapa_cores.get(dados.get("cor", 0), QColor(Qt.GlobalColor.black))
+                
+                # Atualiza dados específicos por tipo
+                w = dados.get("largura", 100)
+                h = dados.get("altura", 100)
+                texto = dados.get("texto", "")
+                
+                from ..componentes import Retangulo, Circulo, Seta, Linha, Texto
+                if isinstance(el, (Retangulo, Circulo)):
+                    el.w = w
+                    el.h = h
+                elif isinstance(el, Seta):
+                    el.direcao = texto if texto else "DIR"
+                    el.tamanho = w
+                elif isinstance(el, Texto):
+                    el.texto = texto
+                    el.tamanho_fonte = int(h) if int(h) > 0 else 24
+                elif isinstance(el, Linha):
+                    try:
+                        pontos = json.loads(texto) if texto else []
+                        el.pontos = [QPoint(p["x"], p["y"]) for p in pontos]
+                    except Exception as e:
+                        logging.debug(f"Erro ao atualizar pontos da linha da rede: {e}")
+                break
+        self.update()
+
+    def remover_elemento_rede(self, id_elemento):
+        for el in self.elementos:
+            if el.id_elemento == id_elemento:
+                if self.elemento_selecionado == el:
+                    self.elemento_selecionado = None
+                self.elementos.remove(el)
+                break
+        self.update()
+

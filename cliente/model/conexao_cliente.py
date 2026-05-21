@@ -1,6 +1,7 @@
 import socket
 import json
 import struct
+import logging
 
 #template
 class ClienteRede:
@@ -15,7 +16,7 @@ class ClienteRede:
             self.socket.connect((self.host, self.porta))
             return True
         except Exception as e:
-            print(f"Erro de conexão: {e}")
+            logging.debug(f"Erro de conexão: {e}")
             return False
 
     def enviar_requisicao(self, tipo_requisicao, payload, esperar_resposta=True):

@@ -44,8 +44,9 @@ class ElementoModelo:
                 )
             )
             conexao.commit()
+            id = cursor.lastrowid #Captura o ID gerado pelo autoincremento do banco
             conexao.close()
-            return True, "Elemento inserido com sucesso"
+            return True, id
         except Exception as e:
             return False, str(e)
 
