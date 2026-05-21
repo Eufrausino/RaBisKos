@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QWidget, QToolBar, QPushButton, QMenu, QInputDialog, QToolButton, QLabel
 from PyQt6.QtGui import QPainter, QPen, QImage, QColor
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRectF
+import json
 from ..componentes import Retangulo, Circulo, Seta, Linha, Texto
 
 class JanelaPrincipal(QMainWindow):
@@ -86,90 +87,119 @@ class JanelaPrincipal(QMainWindow):
         self.update() #NOTE: Redesenha a tela em branco
 
     def mousePressEvent(self, event):
-        self.setFocus()
-        if event.button() != Qt.MouseButton.LeftButton:
-            return
+        try:
+            self.setFocus()
+            if event.button() != Qt.MouseButton.LeftButton:
+                return
 
-        pos = event.position().toPoint()
-        self.ultimo_ponto_mouse = pos 
+            pos = event.position().toPoint()
+            self.ultimo_ponto_mouse = pos 
 
-        #NOTE: MODO SELEÇÃO E ARRASTE
-        if self.ferramenta_ativa == "MAO":
-            self.elemento_selecionado = None
-            for elemento in reversed(self.elementos):
-                if elemento.contem_ponto(pos):
-                    self.elemento_selecionado = elemento
-                    self.statusBar().showMessage(f"Selecionado: {type(elemento).__name__}")
-                    break
-                    
-            if not self.elemento_selecionado:
-                self.statusBar().showMessage("Modo: Mão (Nenhum elemento selecionado)")
+            #NOTE: MODO SELEÇÃO E ARRASTE
+            if self.ferramenta_ativa == "MAO":
+                self.elemento_selecionado = None
+                for elemento in reversed(self.elementos):
+                    if elemento.contem_ponto(pos):
+                        self.elemento_selecionado = elemento
+                        self.statusBar().showMessage(f"Selecionado: {type(elemento).__name__}")
+                        break
+                        
+                if not self.elemento_selecionado:
+                    self.statusBar().showMessage("Modo: Mão (Nenhum elemento selecionado)")
 
-        #NOTE: Componentes gráficos
-        else:
-            self.elemento_selecionado = None
-            
-            if self.ferramenta_ativa == "LIVRE":
-                self.caminho_em_construcao = Linha(self.cor_atual)
-                self.caminho_em_construcao.pontos.append(pos)
-                self.elementos.append(self.caminho_em_construcao)
+            #NOTE: Componentes gráficos
+            else:
+                self.elemento_selecionado = None
                 
-            elif self.ferramenta_ativa == "QUADRILATERO":
-                novo = Retangulo(pos.x(), pos.y(), self.dimensoes["w"], self.dimensoes["h"], self.cor_atual)
-                if self.espaco_livre(novo.caixa_contorno()):
-                    self.elementos.append(novo)
-                else:
-                    self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
+                if self.ferramenta_ativa == "LIVRE":
+                    self.caminho_em_construcao = Linha(self.cor_atual)
+                    self.caminho_em_construcao.pontos.append(pos)
+                    self.elementos.append(self.caminho_em_construcao)
                     
-            elif self.ferramenta_ativa == "CIRCULO":
-                novo = Circulo(pos.x(), pos.y(), self.dimensoes["w"], self.dimensoes["h"], self.cor_atual)
-                if self.espaco_livre(novo.caixa_contorno()):
-                    self.elementos.append(novo)
-                else:
-                    self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
-                    
-            elif self.ferramenta_ativa == "TEXTO":
-                novo = Texto(pos.x(), pos.y(), self.dimensoes['w'], self.dimensoes['h'], self.texto_atual, self.tamanho_fonte_atual, self.cor_atual)
-                if self.espaco_livre(novo.caixa_contorno()):
-                    self.elementos.append(novo)
-                else:
-                    self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
+                elif self.ferramenta_ativa == "QUADRILATERO":
+                    novo = Retangulo(pos.x(), pos.y(), self.dimensoes["w"], self.dimensoes["h"], self.cor_atual)
+                    if self.espaco_livre(novo.caixa_contorno()):
+                        self.elementos.append(novo)
+                    else:
+                        self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
+                        
+                elif self.ferramenta_ativa == "CIRCULO":
+                    novo = Circulo(pos.x(), pos.y(), self.dimensoes["w"], self.dimensoes["h"], self.cor_atual)
+                    if self.espaco_livre(novo.caixa_contorno()):
+                        self.elementos.append(novo)
+                    else:
+                        self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
+                        
+                elif self.ferramenta_ativa == "TEXTO":
+                    novo = Texto(pos.x(), pos.y(), self.dimensoes['w'], self.dimensoes['h'], self.texto_atual, self.tamanho_fonte_atual, self.cor_atual)
+                    if self.espaco_livre(novo.caixa_contorno()):
+                        self.elementos.append(novo)
+                    else:
+                        self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
 
-            elif self.ferramenta_ativa == "SETA":
-                tamanho = getattr(self, "tamanho_seta_atual", 80)
-                novo = Seta(pos.x(), pos.y(), self.cor_atual, self.direcao_seta_atual, tamanho)
-                if self.espaco_livre(novo.caixa_contorno()):
-                    self.elementos.append(novo)
-                else:
-                    self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
+                elif self.ferramenta_ativa == "SETA":
+                    tamanho = getattr(self, "tamanho_seta_atual", 80)
+                    novo = Seta(pos.x(), pos.y(), self.cor_atual, self.direcao_seta_atual, tamanho)
+                    if self.espaco_livre(novo.caixa_contorno()):
+                        self.elementos.append(novo)
+                    else:
+                        self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
 
-        self.update()   
-        
-        if self.ferramenta_ativa != "MAO" and self.elemento_selecionado is None:
-            texto_envio = ""
-            if self.ferramenta_ativa == "TEXTO":
-                texto_envio = getattr(self, "texto_atual", "Texto")
-            elif self.ferramenta_ativa == "SETA":
-                texto_envio = getattr(self, "direcao_seta_atual", "DIR")
-
-            largura_envio = self.dimensoes.get("w", 100)
-            altura_envio = self.dimensoes.get("h", 100)
+            self.update()   
             
-            if self.ferramenta_ativa == "SETA":
-                largura_envio = getattr(self, "tamanho_seta_atual", 80)
-            elif self.ferramenta_ativa == "TEXTO":
-                altura_envio = getattr(self, "tamanho_fonte_atual", 24)
+            if self.ferramenta_ativa not in ['MAO','LIVRE'] and self.elemento_selecionado is None:
+                texto_envio = ""
+                if self.ferramenta_ativa == "TEXTO":
+                    texto_envio = getattr(self, "texto_atual", "Texto")
+                elif self.ferramenta_ativa == "SETA":
+                    texto_envio = getattr(self, "direcao_seta_atual", "DIR")
 
-            dados = {
-                "tipo": self.mapear_tipo(self.ferramenta_ativa),
-                "posx": pos.x(),
-                "posy": pos.y(),
-                "largura": largura_envio,
-                "altura": altura_envio,
-                "cor": self.obter_codigo_cor(self.cor_atual),
-                "texto": texto_envio
-            }
-            self.elemento_criado.emit(dados)
+                largura_envio = self.dimensoes.get("w", 100)
+                altura_envio = self.dimensoes.get("h", 100)
+                
+                if self.ferramenta_ativa == "SETA":
+                    largura_envio = getattr(self, "tamanho_seta_atual", 80)
+                elif self.ferramenta_ativa == "TEXTO":
+                    altura_envio = getattr(self, "tamanho_fonte_atual", 24)
+
+                dados = {
+                    "tipo": self.mapear_tipo(self.ferramenta_ativa),
+                    "posx": pos.x(),
+                    "posy": pos.y(),
+                    "largura": largura_envio,
+                    "altura": altura_envio,
+                    "cor": self.obter_codigo_cor(self.cor_atual),
+                    "texto": texto_envio
+                }
+                self.elemento_criado.emit(dados)
+                print(f"[DEBUG - DISPARANDO EMIT] {dados}")
+        except Exception as e:
+            print(f"ERRO CRÍTICO NO MOUSE PRESS: {e}")
+
+    def mouseReleaseEvent(self, event):
+        
+        if event.button() == Qt.MouseButton.LeftButton:
+            # Se for desenho livre e existir uma linha sendo construída
+            if self.ferramenta_ativa == "LIVRE" and hasattr(self, 'caminho_em_construcao') and self.caminho_em_construcao:
+                
+                # Coleta todos os pontos X, Y da linha em uma lista de dicionários
+                pontos = [{"x": p.x(), "y": p.y()} for p in self.caminho_em_construcao.pontos]
+                
+                if pontos: # Só envia se realmente desenhou algo
+                    dados = {
+                        "tipo": "Linha",
+                        "posx": pontos[0]["x"], # X inicial
+                        "posy": pontos[0]["y"], # Y inicial
+                        "largura": 0,
+                        "altura": 0,
+                        "cor": self.obter_codigo_cor(self.cor_atual),
+                        "texto": json.dumps(pontos) # Empacota os pontos como String (JSON)
+                    }
+                    print(f"[DEBUG - ENVIANDO] {dados}")
+                    self.elemento_criado.emit(dados)
+                
+                # Limpa a variável para o próximo desenho local
+                self.caminho_em_construcao = None
 
     #NOTE: Impede colocar forma sobre forma, evitar problemas no banco
     def espaco_livre(self, nova_caixa: QRectF) -> bool:
@@ -277,6 +307,7 @@ class JanelaPrincipal(QMainWindow):
                 if ok2:
                     self.texto_atual = texto
                     self.tamanho_fonte_atual = tamanho
+                    self.dimensoes = {'w':100,'h':100}
                 else:
                     self.ferramenta_ativa = "MAO"
             else:
@@ -305,11 +336,9 @@ class JanelaPrincipal(QMainWindow):
 
     def obter_codigo_cor(self, qcolor):
         if qcolor == QColor(Qt.GlobalColor.black): return 0
-        if qcolor == QColor(Qt.GlobalColor.white): return 1
-        if qcolor == QColor(Qt.GlobalColor.red): return 2
+        if qcolor == QColor(Qt.GlobalColor.red): return 1
+        if qcolor == QColor(Qt.GlobalColor.blue): return 2
         if qcolor == QColor(Qt.GlobalColor.green): return 3
-        if qcolor == QColor(Qt.GlobalColor.blue): return 4
-        if qcolor == QColor(Qt.GlobalColor.yellow): return 5
         return 0
 
     def mapear_tipo(self, ferramenta):
@@ -324,14 +353,11 @@ class JanelaPrincipal(QMainWindow):
 
 
     def adicionar_elemento_rede(self, dados):
-        from ..componentes import Retangulo, Circulo, Seta, Linha, Texto
-        
         tipo = dados.get("tipo")
         
         mapa_cores = {
-            0: QColor(Qt.GlobalColor.black), 1: QColor(Qt.GlobalColor.white),
-            2: QColor(Qt.GlobalColor.red), 3: QColor(Qt.GlobalColor.green),
-            4: QColor(Qt.GlobalColor.blue), 5: QColor(Qt.GlobalColor.yellow)
+            0: QColor(Qt.GlobalColor.black), 1: QColor(Qt.GlobalColor.red),
+            2: QColor(Qt.GlobalColor.blue), 3: QColor(Qt.GlobalColor.green),
         }
         cor = mapa_cores.get(dados.get("cor", 0), QColor(Qt.GlobalColor.black))
 
@@ -351,18 +377,32 @@ class JanelaPrincipal(QMainWindow):
             self.elementos.append(novo)
 
         elif tipo == "Texto":
-            tamanho_fonte = int(h) if h > 0 else 24
-            frase = texto if texto else "Texto"
-            
-            caixa_w = max(w, 200)
-            caixa_h = max(h, 50)
+            try:
+                print(f"DEBUG RECEBIDO -> Texto: {texto}, X: {px}, Y: {py}, Cor: {cor}")
+                # O tamanho da fonte foi enviado embutido na variável 'h' (altura)
+                tamanho_fonte = int(h) if int(h) > 0 else 24
+                
+                # Garante que seja lido como string
+                frase = str(texto) if texto else "Texto"
+                
+                # Usamos exatamente as mesmas dimensões padrão da criação local (100x100)
+                # para evitar que a caixa de contorno quebre a renderização do componente
+                novo = Texto(int(px), int(py), 400, 400, frase, tamanho_fonte, cor)
+                
+                self.elementos.append(novo)
+                
+            except Exception as e:
+                print(f"Erro ao renderizar Texto da rede: {e}")
 
-            novo = Texto(px, py, caixa_w, caixa_h, frase, tamanho_fonte, cor)
+        elif tipo == "Linha":
+            try:
+                pontos = json.loads(texto) if texto else []
+                novo = Linha(cor)
+                for p in pontos:
+                    novo.pontos.append(QPoint(p["x"], p["y"]))
+                self.elementos.append(novo)
+            except Exception as e:
+                print(f"Erro ao renderizar linha da rede: {e}")
             
-            if hasattr(novo, 'setText'):
-                novo.setText(frase)
-            
-            self.elementos.append(novo)
-            #print(f"[DEBUG] Texto recebido: '{frase}' na posição ({px}, {py})")
-            
+        print(f"DEBUG RECEBIDO -> Texto: {texto}, X: {px}, Y: {py}, Cor: {cor}")
         self.update()

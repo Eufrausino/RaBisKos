@@ -11,12 +11,12 @@ except ImportError:
 from .banco_de_dados.modelo_banco import obter_conexao
 
 class ElementoDados(TypedDict):
-    tipo: NotRequired[Literal['Retangulo', 'Quadrado', 'Circulo', 'Triangulo', 'Linha', 'Seta']]
+    tipo: NotRequired[Literal['Retangulo', 'Quadrado', 'Circulo', 'Triangulo', 'Linha', 'Seta', 'Texto']]
     posx: int
     posy: int
     largura: int
     altura: int
-    cor: int  # 0: Preto, 1: Branco, 2: Vermelho, 3: Verde, 4: Azul, 5: Amarelo
+    cor: int  #NOTE: 0: Preto, 1: Vermelho, 2: Azul, 3: Verde, 
     texto: NotRequired[str]  
 
 class ElementoModelo:

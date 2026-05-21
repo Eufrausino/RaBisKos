@@ -23,7 +23,7 @@ class ElementController:
         if sucesso:
             broadcast_msg = ResponseView.event("ELEMENT_CREATED", data)
             
-            #print(f"[DEBUG SERVIDOR] Disparando broadcast para o quadro {id_quadro} com: {data.get('tipo')}")
+            # print(f"[DEBUG SERVIDOR] Disparando broadcast para o quadro {id_quadro} com: {data.get('tipo')}")
 
             self.connection_manager.broadcast_to_board(id_quadro, broadcast_msg, exclude_socket=client_socket)
             

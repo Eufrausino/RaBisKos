@@ -27,8 +27,6 @@ class ControladorCliente:
             QMessageBox.warning(self.janela, "Erro", "Por favor, preencha todos os campos")
             return
             
-        #payload = {"username": usuario, "password": senha, "sala": sala}
-        # Mudei aqui, gustavo. 
         payload = {"nomeUsuario": usuario, "senhaUsuario": senha, "sala": sala}
         self.iniciar_requisicao_background('LOGIN', payload)
 
