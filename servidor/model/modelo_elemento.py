@@ -129,3 +129,17 @@ class ElementoModelo:
             return True, elementos
         except Exception as e:
             return False, str(e)
+    
+    @staticmethod
+    def limpar_quadro(idQuadro: int):
+        try:
+            conexao = obter_conexao()
+            cursor = conexao.cursor()
+            
+            cursor.execute('DELETE FROM elementos WHERE IdQuadro = ?', (idQuadro,))
+            conexao.commit()
+            linhas_afetadas = cursor.rowcount
+            conexao.close()
+            return True, f"Quadro {idQuadro} limpo com sucesso. Elementos removidos: {linhas_afetadas}"
+        except Exception as e:
+            return False, str(e)

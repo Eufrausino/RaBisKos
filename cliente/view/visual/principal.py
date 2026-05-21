@@ -8,11 +8,13 @@ from ..componentes import Retangulo, Circulo, Seta, Linha, Texto
 class JanelaPrincipal(QMainWindow):
     #NOTE:QUADRO BRANCO
 
-    #NOTE:INDICA COMPONENTE, ULTIMA_POS_X, ULTIMA_POS_Y, POS_ATUAL_X, POS_ATUAL_Y e COR
+    #NOTE: Sinais emitidos pelo controller pro quadro
     ponto_desenhado = pyqtSignal(str,int, int, int, int,str)
     elemento_criado = pyqtSignal(dict)
     elemento_atualizado = pyqtSignal(dict)
     elemento_deletado = pyqtSignal(int)
+    quadro_limpo = pyqtSignal()
+
     def __init__(self):
         super().__init__()
         #NOTE: Permite mudar de cor - qt faz perder foco quando interage com outro widget
@@ -102,12 +104,15 @@ class JanelaPrincipal(QMainWindow):
                 self.statusBar().showMessage("Elemento deletado.")
                 self.update()
 
-    def limpar_quadro(self):
+    def limpar_quadro(self, checked=False, emitir_sinal=True):
         self.elementos.clear() #NOTE: Esvazia a lista de componentes
         self.elemento_selecionado = None
         if hasattr(self, 'caminho_em_construcao'):
             self.caminho_em_construcao = None
         self.update() #NOTE: Redesenha a tela em branco
+
+        if emitir_sinal:
+            self.quadro_limpo.emit()
 
     def mousePressEvent(self, event):
         try:

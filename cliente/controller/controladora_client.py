@@ -18,6 +18,7 @@ class ControladorCliente:
         self.janela.pagina_principal.elemento_criado.connect(self.processar_criacao_elemento)
         self.janela.pagina_principal.elemento_atualizado.connect(self.processar_atualizacao_elemento)
         self.janela.pagina_principal.elemento_deletado.connect(self.processar_remocao_elemento)
+        self.janela.pagina_principal.quadro_limpo.connect(self.processar_limpar_quadro)
 
         self.worker = None
         
@@ -150,6 +151,9 @@ class ControladorCliente:
             if 'elementos' in dados:
                 for el in dados['elementos']:
                     self.janela.pagina_principal.adicionar_elemento_rede(el)
+                    
+        elif tipo == "BOARD_CLEARED":
+            self.janela.pagina_principal.limpar_quadro(emitir_sinal=False)
     
     def processar_atualizacao_elemento(self, dados_elemento):
         if not self.id_quadro:
@@ -166,3 +170,7 @@ class ControladorCliente:
         }
         self.modelo.enviar_requisicao('DELETE_ELEMENTO', payload, esperar_resposta=False)
 
+    def processar_limpar_quadro(self):
+        if not self.id_quadro:
+            return 
+        self.modelo.enviar_requisicao('CLEAR_BOARD', {"idQuadro": self.id_quadro}, esperar_resposta=False)

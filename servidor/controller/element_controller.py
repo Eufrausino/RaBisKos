@@ -68,3 +68,21 @@ class ElementController:
             return ResponseView.success("DELETE_ELEMENT_RESPONSE", {"mensagem": msg})
         else:
             return ResponseView.error("ERROR_DELETE_ELEMENTO", msg)
+    
+    def clear_board(self, message: dict, client_socket) -> dict:
+        data = message.get("data", {})
+        id_quadro = data.get("idQuadro")
+
+        sucesso, msg = ElementoModelo.limpar_quadro(id_quadro)
+        
+        if sucesso:
+            # Notifica todos na sala (exceto quem solicitou)
+            broadcast_msg = ResponseView.event("BOARD_CLEARED", {
+                "idQuadro": id_quadro
+            })
+            self.connection_manager.broadcast_to_board(id_quadro, broadcast_msg, exclude_socket=client_socket)
+            
+            return ResponseView.success("CLEAR_BOARD_RESPONSE", {"mensagem": msg})
+        else:
+            return ResponseView.error("ERROR_CLEAR_BOARD", msg)
+  

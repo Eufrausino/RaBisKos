@@ -45,5 +45,7 @@ class ServerController:
             return self.element_controller.update_element(message, client_socket)
         elif tipo == "DELETE_ELEMENTO":
             return self.element_controller.delete_element(message, client_socket)
+        elif tipo == "CLEAR_BOARD":
+            return self.element_controller.clear_board(message, client_socket)
             
         return ResponseView.error("INVALID_MESSAGE", "Tipo de comando desconhecido.")
