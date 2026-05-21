@@ -98,15 +98,6 @@ class ControladorCliente:
         self.janela.definir_carregamento(False)
         QMessageBox.critical(self.janela, "Erro de Sistema", f"Ocorreu um erro inesperado: {mensagem_erro}")
 
-    def processar_criacao_elemento(self, dados_elemento):
-        # Só envia para o banco se estiver dentro de uma sala
-        if not self.id_quadro:
-            return 
-            
-        dados_elemento["idQuadro"] = self.id_quadro
-        
-        # Envia a requisição JSON para o Servidor TCP!
-        self.iniciar_requisicao_background('CREATE_ELEMENTO', dados_elemento)
 
     def iniciar_escuta_tempo_real(self):
         from .trabalhadora import ThreadEscuta
