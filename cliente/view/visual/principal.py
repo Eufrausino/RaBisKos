@@ -138,6 +138,7 @@ class JanelaPrincipal(QMainWindow):
             #NOTE: Componentes gráficos
             else:
                 self.elemento_selecionado = None
+                criado = False
                 
                 if self.ferramenta_ativa == "LIVRE":
                     self.caminho_em_construcao = Linha(self.cor_atual)
@@ -148,6 +149,7 @@ class JanelaPrincipal(QMainWindow):
                     novo = Retangulo(pos.x(), pos.y(), self.dimensoes["w"], self.dimensoes["h"], self.cor_atual)
                     if self.espaco_livre(novo.caixa_contorno()):
                         self.elementos.append(novo)
+                        criado = True
                     else:
                         self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
                         
@@ -155,6 +157,7 @@ class JanelaPrincipal(QMainWindow):
                     novo = Circulo(pos.x(), pos.y(), self.dimensoes["w"], self.dimensoes["h"], self.cor_atual)
                     if self.espaco_livre(novo.caixa_contorno()):
                         self.elementos.append(novo)
+                        criado = True
                     else:
                         self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
                         
@@ -162,6 +165,7 @@ class JanelaPrincipal(QMainWindow):
                     novo = Texto(pos.x(), pos.y(), self.dimensoes['w'], self.dimensoes['h'], self.texto_atual, self.tamanho_fonte_atual, self.cor_atual)
                     if self.espaco_livre(novo.caixa_contorno()):
                         self.elementos.append(novo)
+                        criado = True
                     else:
                         self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
 
@@ -170,12 +174,13 @@ class JanelaPrincipal(QMainWindow):
                     novo = Seta(pos.x(), pos.y(), self.cor_atual, self.direcao_seta_atual, tamanho)
                     if self.espaco_livre(novo.caixa_contorno()):
                         self.elementos.append(novo)
+                        criado = True
                     else:
                         self.statusBar().showMessage("Espaço ocupado! Sobreposição não permitida.")
 
             self.update()   
             
-            if self.ferramenta_ativa not in ['MAO','LIVRE'] and self.elemento_selecionado is None:
+            if self.ferramenta_ativa not in ['MAO','LIVRE'] and self.elemento_selecionado is None and criado:
                 texto_envio = ""
                 if self.ferramenta_ativa == "TEXTO":
                     texto_envio = getattr(self, "texto_atual", "Texto")
