@@ -13,7 +13,8 @@ class ControladorCliente:
         
         self.janela.pagina_login.solicitar_login.connect(self.processar_login)
         self.janela.pagina_registro.dados_registro.connect(self.processar_registro)
-        
+        self.janela.pagina_principal.elemento_criado.connect(self.processar_criacao_elemento)
+
         self.worker = None
         
         # variaveis da sessao
@@ -56,21 +57,20 @@ class ControladorCliente:
         if resposta['sucesso']:
             dados = resposta.get('dados', {})
             
-            # Sucesso no login
+            # 1. SUCESSO NO LOGIN
             if 'idUsuario' in dados:
                 self.id_usuario = dados.get('idUsuario')
                 sala_digitada = dados.get('sala') 
                 
-                # se tiver sala tenta entrar
                 if sala_digitada:
                     payload = {"idUsuario": self.id_usuario, "idQuadroSala": sala_digitada}
                     self.iniciar_requisicao_background('JOIN_QUADRO', payload)
                 else:
                     payload = {"idUsuarioDono": self.id_usuario}
                     self.iniciar_requisicao_background('CREATE_QUADRO', payload)
-            
-            # sucesso no entrar quadro
-            elif 'idQuadro' in dados:
+                    
+            # 2. SUCESSO AO ENTRAR/CRIAR QUADRO
+            elif 'idQuadroSala' in dados:
                 self.id_quadro = dados.get('idQuadro')
                 self.id_quadro_sala = dados.get('idQuadroSala')
                 
@@ -83,13 +83,53 @@ class ControladorCliente:
                 self.janela.pagina_principal.definir_sala(self.id_quadro_sala)
                 self.janela.mudar_pagina(2)
                 
+                # Liga o "ouvido" do multiplayer
+                self.iniciar_escuta_tempo_real()
+                
+                # CORREÇÃO AQUI: Em vez de iniciar um Worker, enviamos direto sem esperar (a Thread de escuta vai apanhar a resposta)
+                self.modelo.enviar_requisicao('GET_QUADRO', {"idQuadro": self.id_quadro}, esperar_resposta=False)
+                
             else:
                 QMessageBox.information(self.janela, "Sucesso", resposta['mensagem'])
                 if self.janela.obter_indice_atual() == 1:
                     self.janela.mudar_pagina(0)
         else:
             QMessageBox.critical(self.janela, "Erro", resposta['mensagem'])
-
+    
     def ao_ocorrer_erro(self, mensagem_erro):
         self.janela.definir_carregamento(False)
         QMessageBox.critical(self.janela, "Erro de Sistema", f"Ocorreu um erro inesperado: {mensagem_erro}")
+
+    def processar_criacao_elemento(self, dados_elemento):
+        # Só envia para o banco se estiver dentro de uma sala
+        if not self.id_quadro:
+            return 
+            
+        dados_elemento["idQuadro"] = self.id_quadro
+        
+        # Envia a requisição JSON para o Servidor TCP!
+        self.iniciar_requisicao_background('CREATE_ELEMENTO', dados_elemento)
+
+    def iniciar_escuta_tempo_real(self):
+        from .trabalhadora import ThreadEscuta
+        self.thread_escuta = ThreadEscuta(self.modelo)
+        self.thread_escuta.sinal_evento.connect(self.processar_evento_rede)
+        self.thread_escuta.start()
+
+    def processar_evento_rede(self, evento):
+        tipo = evento.get("type")
+        dados = evento.get("data", {})
+
+        if tipo == "ELEMENT_CREATED":
+            self.janela.pagina_principal.adicionar_elemento_rede(dados)
+
+        elif tipo == "GET_BOARD_RESPONSE":
+            if 'elementos' in dados:
+                for el in dados['elementos']:
+                    self.janela.pagina_principal.adicionar_elemento_rede(el)
+
+    def processar_criacao_elemento(self, dados_elemento):
+        if not self.id_quadro:
+            return 
+        dados_elemento["idQuadro"] = self.id_quadro
+        self.modelo.enviar_requisicao('CREATE_ELEMENTO', dados_elemento, esperar_resposta=False)

@@ -101,3 +101,30 @@ class ElementoModelo:
                 return False, "Elemento não encontrado"
         except Exception as e:
             return False, str(e)
+
+    @staticmethod
+    def listar_por_quadro(idQuadro: int):
+        try:
+            conexao = obter_conexao()
+            cursor = conexao.cursor()
+            
+            cursor.execute('SELECT IdElemento, Tipo, PosX, PosY, Largura, Altura, Cor, Texto, Versao FROM elementos WHERE IdQuadro = ?', (idQuadro,))
+            linhas = cursor.fetchall()
+            conexao.close()
+            
+            elementos = []
+            for linha in linhas:
+                elementos.append({
+                    "idElemento": linha[0],
+                    "tipo": linha[1],
+                    "posx": linha[2],
+                    "posy": linha[3],
+                    "largura": linha[4],
+                    "altura": linha[5],
+                    "cor": linha[6],
+                    "texto": linha[7] or "",
+                    "versao": linha[8]
+                })
+            return True, elementos
+        except Exception as e:
+            return False, str(e)

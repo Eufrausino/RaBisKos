@@ -1,6 +1,7 @@
 from model.modelo_quadro import QuadroModelo
 from model.modelo_usuario_quadro import UsuarioQuadroModelo
 from view.response_view import ResponseView
+from model.modelo_elemento import ElementoModelo
 
 class BoardController:
     def create_board(self, message: dict) -> dict:
@@ -53,7 +54,10 @@ class BoardController:
         if not id_quadro:
             return ResponseView.error("ERROR_GET_QUADRO", "ID do quadro é obrigatório.")
 
+        sucesso, resultado = ElementoModelo.listar_por_quadro(id_quadro)
+        elementos_banco = resultado if sucesso else []
+
         return ResponseView.success("GET_BOARD_RESPONSE", {
             "idQuadro": id_quadro,
-            "elementos": [] 
+            "elementos": elementos_banco
         })

@@ -18,7 +18,7 @@ class ClienteRede:
             print(f"Erro de conexão: {e}")
             return False
 
-    def enviar_requisicao(self, tipo_requisicao, payload):
+    def enviar_requisicao(self, tipo_requisicao, payload, esperar_resposta=True):
         if not self.socket:
             if not self.conectar():
                 return {"sucesso": False, "mensagem": "Não foi possível conectar ao servidor"}
@@ -32,6 +32,9 @@ class ClienteRede:
             dados = json.dumps(requisicao).encode('utf-8')
             cabecalho = struct.pack('>I', len(dados))
             self.socket.sendall(cabecalho + dados)
+
+            if not esperar_resposta:
+                return {"sucesso": True, "mensagem": "Enviado"}
             
             # Ler resposta
             cabecalho = self.socket.recv(4)
@@ -70,3 +73,21 @@ class ClienteRede:
         if self.socket:
             self.socket.close()
             self.socket = None
+
+    def escutar_servidor(self):
+        try:
+            cabecalho = self.socket.recv(4)
+            if not cabecalho:
+                return None
+            
+            tamanho_mensagem = struct.unpack('>I', cabecalho)[0]
+            dados = b''
+            while len(dados) < tamanho_mensagem:
+                chunk = self.socket.recv(tamanho_mensagem - len(dados))
+                if not chunk:
+                    return None
+                dados += chunk
+            
+            return json.loads(dados.decode('utf-8'))
+        except Exception:
+            return None

@@ -18,3 +18,19 @@ class Worker(QThread):
             self.sinal_erro.emit(str(e))
         finally:
             self.deleteLater() 
+
+class ThreadEscuta(QThread):
+    sinal_evento = pyqtSignal(dict)
+    
+    def __init__(self, cliente):
+        super().__init__()
+        self.cliente = cliente
+        self.rodando = True
+        
+    def run(self):
+        while self.rodando:
+            mensagem = self.cliente.escutar_servidor()
+            if mensagem:
+                self.sinal_evento.emit(mensagem)
+            else:
+                self.rodando = False 
