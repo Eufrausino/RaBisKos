@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS quadros (
 CREATE TABLE IF NOT EXISTS elementos (
     IdElemento INTEGER PRIMARY KEY AUTOINCREMENT,
     IdQuadro INT, 
-    Tipo TEXT CHECK(Tipo IN ('Retangulo', 'Quadrado', 'Circulo', 'Triangulo', 'Linha', 'Seta')), 
+    Tipo TEXT CHECK(Tipo IN ('Retangulo', 'Quadrado', 'Circulo', 'Triangulo', 'Linha', 'Seta', 'Texto')), 
     PosX INT,
     PosY INT,
     Largura INT,
