@@ -11,10 +11,16 @@ down:
 upd:
 	xhost +local:docker
 	$(COMPOSE) up -d
-	# $(COMPOSE) logs -f $(CLIENTE)
 
 mais_cliente:
 	$(COMPOSE) run --rm $(CLIENTE)
 
+mais_cliente_d:
+	$(COMPOSE) run -d --rm $(CLIENTE)
+
+
 menos_orfaos:
 	$(COMPOSE) down --remove-orphans
+
+down_total: down
+	$(MAKE) menos_orfaos
