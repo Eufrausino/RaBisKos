@@ -104,7 +104,7 @@ class JanelaPrincipal(QMainWindow):
                 self.statusBar().showMessage("Elemento deletado.")
                 self.update()
 
-    def limpar_quadro(self, checked=False, emitir_sinal=True):
+    def limpar_quadro(self, emitir_sinal=True):
         self.elementos.clear() #NOTE: Esvazia a lista de componentes
         self.elemento_selecionado = None
         if hasattr(self, 'caminho_em_construcao'):
