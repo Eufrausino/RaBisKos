@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 
 #NOTE: Classe abstrata -> componentes específicos herdam atributos e implementam métodos
 class Forma:
-    #NOTE: posições x,y; largura; altura e cor
     def __init__(self, x, y, cor):
         self.x = x
         self.y = y

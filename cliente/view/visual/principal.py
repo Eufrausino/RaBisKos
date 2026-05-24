@@ -9,7 +9,7 @@ class JanelaPrincipal(QMainWindow):
     #NOTE:QUADRO BRANCO
 
     #NOTE: Sinais emitidos pelo controller pro quadro
-    ponto_desenhado = pyqtSignal(str,int, int, int, int,str)
+    #ponto_desenhado = pyqtSignal(str,int, int, int, int,str)
     elemento_criado = pyqtSignal(dict)
     elemento_atualizado = pyqtSignal(dict)
     elemento_deletado = pyqtSignal(int)
@@ -458,7 +458,6 @@ class JanelaPrincipal(QMainWindow):
         self.update()
 
     def mapear_tipo_objeto(self, obj):
-        from ..componentes import Retangulo, Circulo, Seta, Linha, Texto
         if isinstance(obj, Retangulo):
             return "Retangulo"
         elif isinstance(obj, Circulo):
@@ -472,7 +471,6 @@ class JanelaPrincipal(QMainWindow):
         return "Retangulo"
 
     def obter_texto_objeto(self, obj):
-        from ..componentes import Texto, Seta, Linha
         if isinstance(obj, Texto):
             return obj.texto
         elif isinstance(obj, Seta):
@@ -501,7 +499,6 @@ class JanelaPrincipal(QMainWindow):
                 h = dados.get("altura", 100)
                 texto = dados.get("texto", "")
                 
-                from ..componentes import Retangulo, Circulo, Seta, Linha, Texto
                 if isinstance(el, (Retangulo, Circulo)):
                     el.w = w
                     el.h = h

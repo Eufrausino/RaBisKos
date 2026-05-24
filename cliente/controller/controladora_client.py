@@ -2,7 +2,7 @@ import os
 import logging
 from PyQt6.QtWidgets import QMessageBox
 from model.conexao_cliente import ClienteRede
-from .trabalhadora import Worker
+from .trabalhadora import Worker, ThreadEscuta
 
 class ControladorCliente:
     def __init__(self, janela):
@@ -117,7 +117,6 @@ class ControladorCliente:
         self.modelo.enviar_requisicao('CREATE_ELEMENTO', dados_elemento, esperar_resposta=False)
 
     def iniciar_escuta_tempo_real(self):
-        from .trabalhadora import ThreadEscuta
         self.thread_escuta = ThreadEscuta(self.modelo)
         self.thread_escuta.sinal_evento.connect(self.processar_evento_rede)
         self.thread_escuta.start()
