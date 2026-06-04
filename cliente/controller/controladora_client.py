@@ -8,9 +8,8 @@ class ControladorCliente:
     def __init__(self, janela):
         self.janela = janela
         self.fila_elementos_pendentes = []  # fila de elementos criados para controlar acesso simultaneo/alteração no arquivo seguidamente (tcp garante integra ordenada)
-        
-        host = os.environ.get('SERVER_HOST', 'localhost')
-        porta = int(os.environ.get('SERVER_PORT', 5000))
+        host = os.environ.get('NS_HOST', 'localhost')
+        porta = int(os.environ.get('NS_PORT', 9090))
         self.modelo = ClienteRede(host=host, porta=porta)
         
         self.janela.pagina_login.solicitar_login.connect(self.processar_login)

@@ -1,4 +1,8 @@
 services:
+  nameserver:
+    init: true 
+    build: ./middleware
+
   servidor:
     init: true
     build: ./servidor
@@ -11,8 +15,12 @@ services:
     environment:
       - DB_PATH=/app/data/sistema.db
       - PYTHONPATH=/app
+      - NS_HOST=nameserver
+      - NS_PORT=9090
+      - SERVIDOR_HOST=servidor
     depends_on:
       - db-init
+      - nameserver
 
   db-init:
     image: busybox
@@ -29,8 +37,10 @@ services:
       - XDG_RUNTIME_DIR=/tmp/wayland-runtime
       - QT_QPA_PLATFORM=wayland;xcb
       - XAUTHORITY=/tmp/.Xauthority
-      - SERVER_HOST=servidor
-      - SERVER_PORT=5000
+      - NS_HOST=nameserver
+      - NS_PORT=9090
+      # - SERVER_HOST=servidor
+      # - SERVER_PORT=5000
     volumes:
       - ./cliente:/app
       - /tmp/.X11-unix:/tmp/.X11-unix
