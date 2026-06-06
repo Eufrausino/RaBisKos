@@ -40,7 +40,7 @@ class ServerController:
             return resposta
             
         elif tipo == "GET_QUADRO":
-            return self.board_controller.get_board(message)
+            return self.board_controller.get_board(message, client_callback)
             
         elif tipo == "CREATE_ELEMENTO":
             return self.element_controller.create_element(message, client_callback)

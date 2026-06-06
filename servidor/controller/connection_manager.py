@@ -1,27 +1,40 @@
 # import json
 # import struct
 import logging
+import Pyro5.api
 
 class ConnectionManager:
     def __init__(self):
+        # Agora armazenamos URIs (strings) em vez de objetos Proxy
         self.salas = {}
+
+    def _get_uri(self, callback):
+        """Função auxiliar para extrair a URI de forma segura"""
+        if hasattr(callback, '_pyroUri'):
+            return str(callback._pyroUri)
+        return str(callback)
 
     def add_client(self, id_quadro: int, client_callback) -> None:
         if id_quadro not in self.salas:
             self.salas[id_quadro] = []
             
-        if client_callback not in self.salas[id_quadro]:
-            self.salas[id_quadro].append(client_callback)
+        # Extrai a URI do callback para evitar problemas de thread
+        uri = self._get_uri(client_callback)
+        
+        if uri not in self.salas[id_quadro]:
+            self.salas[id_quadro].append(uri)
             logging.debug(f"[MANAGER] Cliente adicionado à sala {id_quadro}. Total na sala: {len(self.salas[id_quadro])}")
 
     def remove_client(self, client_callback) -> None:
+        uri_to_remove = self._get_uri(client_callback)
         salas_a_remover = []
-        for id_quadro, callbacks in self.salas.items():
-            if client_callback in callbacks:
-                callbacks.remove(client_callback)
+        
+        for id_quadro, uris in self.salas.items():
+            if uri_to_remove in uris:
+                uris.remove(uri_to_remove)
                 logging.debug(f"[MANAGER] Cliente removido da sala {id_quadro}")
   
-            if not callbacks:
+            if not uris:
                 salas_a_remover.append(id_quadro)
                 
         for id_quadro in salas_a_remover:
@@ -31,18 +44,18 @@ class ConnectionManager:
         if id_quadro not in self.salas:
             return
 
-        # dados_resposta = json.dumps(message).encode('utf-8')
-        # cabecalho_resposta = struct.pack('>I', len(dados_resposta))
-        # pacote = cabecalho_resposta + dados_resposta
-
-        callbacks_falhos = []
-        for client_callback in self.salas[id_quadro]:
-            if client_callback != exclude_callback:
+        exclude_uri = self._get_uri(exclude_callback) if exclude_callback else None
+        uris_falhas = []
+        
+        for uri in self.salas[id_quadro]:
+            if uri != exclude_uri:
                 try:
-                    client_callback.notificar_evento(message)
+                    #NOTE: Cria um novo proxy na thread atual usando a URI
+                    with Pyro5.api.Proxy(uri) as client_proxy:
+                        client_proxy.notificar_evento(message)
                 except Exception as e:
                     logging.debug(f"[MANAGER] Erro ao enviar broadcast para um cliente: {e}")
-                    callbacks_falhos.append(client_callback)
+                    uris_falhas.append(uri) #NOTE: Passa a URI para remoção
 
-        for falho in callbacks_falhos:
-            self.remove_client(falho)
+        for falha_uri in uris_falhas:
+            self.remove_client(falha_uri)

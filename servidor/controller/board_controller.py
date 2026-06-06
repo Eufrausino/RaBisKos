@@ -47,17 +47,25 @@ class BoardController:
         else:
             return ResponseView.error("BOARD_NOT_FOUND", "A sala informada não foi encontrada.")
 
-    def get_board(self, message: dict) -> dict:
+    def get_board(self, message: dict, client_callback=None) -> dict:
         data = message.get("data", {})
         id_quadro = data.get("idQuadro")
 
         if not id_quadro:
-            return ResponseView.error("ERROR_GET_QUADRO", "ID do quadro é obrigatório.")
+            erro = ResponseView.error("ERROR_GET_QUADRO", "ID do quadro é obrigatório.")
+            if client_callback:
+                client_callback.notificar_evento(erro)
+            return erro
 
         sucesso, resultado = ElementoModelo.listar_por_quadro(id_quadro)
         elementos_banco = resultado if sucesso else []
 
-        return ResponseView.success("GET_BOARD_RESPONSE", {
+        resposta = ResponseView.success("GET_BOARD_RESPONSE", {
             "idQuadro": id_quadro,
             "elementos": elementos_banco
         })
+
+        if client_callback:
+            client_callback.notificar_evento(resposta)
+
+        return resposta

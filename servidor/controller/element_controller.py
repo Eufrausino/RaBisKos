@@ -28,13 +28,19 @@ class ElementController:
             # logging.debug(f"[DEBUG SERVIDOR] Disparando broadcast para o quadro {id_quadro} com: {data.get('tipo')}")
 
             data["idElemento"] = msg
+            if client_callback:
+                resposta_dono = ResponseView.success("CREATE_ELEMENT_RESPONSE", {"idElemento": msg})
+                client_callback.notificar_evento(resposta_dono)
+
             broadcast_msg = ResponseView.event("ELEMENT_CREATED", data)
             logging.debug(f"[DEBUG SERVIDOR] Disparando broadcast para o quadro {id_quadro} com: {data.get('tipo')}")
             self.connection_manager.broadcast_to_board(id_quadro, broadcast_msg, exclude_callback=client_callback)
-            
+
             return ResponseView.success("CREATE_ELEMENT_RESPONSE", {"idElemento": msg})
         else:
-            return ResponseView.error("ERROR_CREATE_ELEMENTO", str(msg)) 
+            if client_callback:
+                client_callback.notificar_evento(ResponseView.error("ERROR_CREATE_ELEMENTO", str(msg)))
+            return ResponseView.error("ERROR_CREATE_ELEMENTO", str(msg))
             #NOTE: adicionei typecast pq tipo da msg nao casava com o parametro do metodo (tlvz mudar no proprio metodo dps) segundo o interpretador python
 
     def update_element(self, message: dict, client_callback) -> dict:
