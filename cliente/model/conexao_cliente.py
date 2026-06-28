@@ -18,6 +18,12 @@ class ClienteRede:
         else:
             self.host = host or "localhost"
             self.porta = porta or 9090
+        
+        # Define a configuração global do Pyro5 para que os proxies resolvam PYRONAME corretamente
+        from Pyro5 import config
+        config.NS_HOST = self.host
+        config.NS_PORT = self.porta
+
         self.servidor_proxy = None
         self.async_servidor_proxy = None
         self.daemon = None
