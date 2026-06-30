@@ -1,3 +1,4 @@
+import os
 import logging
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QGraphicsDropShadowEffect, QMessageBox
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -23,7 +24,9 @@ class PaginaRegistro(QWidget):
         layout_container.setContentsMargins(20, 20, 20, 20)
         
         self.label_imagem = QLabel()
-        pixmap = QPixmap("view/assets/logo.png").scaled(
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        logo_path = os.path.join(base_dir, "assets", "logo.png")
+        pixmap = QPixmap(logo_path).scaled(
             400, 400, 
             Qt.AspectRatioMode.KeepAspectRatio, 
         )

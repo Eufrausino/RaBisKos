@@ -41,7 +41,10 @@ class ClienteRede:
             
             self.async_servidor_proxy = Pyro5.api.Proxy("PYRONAME:rabiskos.servidor")
 
-            self.daemon = Pyro5.api.Daemon(socket.gethostbyname(socket.gethostname()))
+            # CLIENT_HOST deve ser o IP desta máquina acessível pelo servidor (ex: 192.168.0.X)
+            # Se não definido, tenta resolver automaticamente (pode falhar em Windows com 127.0.0.1)
+            client_host = os.environ.get("CLIENT_HOST", socket.gethostbyname(socket.gethostname()))
+            self.daemon = Pyro5.api.Daemon(client_host)
             self.daemon.register(self) # Registra o próprio cliente como alvo do callback
 
             threading.Thread(target=self.daemon.requestLoop, daemon=True).start()

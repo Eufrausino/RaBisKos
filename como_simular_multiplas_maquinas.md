@@ -40,7 +40,7 @@ Abra um **segundo terminal** na Máquina A, defina a variável `SERVIDOR_HOST` c
 * **No Linux / WSL:**
   ```bash
   export PYTHONPATH=$(pwd)
-  export NS_HOST=localhost
+  export NS_HOST=127.0.0.1
   export NS_PORT=9090
   export SERVIDOR_HOST=<IP_DA_MAQUINA_A>
   python3 servidor/main_servidor.py
@@ -48,7 +48,7 @@ Abra um **segundo terminal** na Máquina A, defina a variável `SERVIDOR_HOST` c
 * **No Windows:**
   ```powershell
   $env:PYTHONPATH="."
-  $env:NS_HOST="localhost"
+  $env:NS_HOST="127.0.0.1"
   $env:NS_PORT="9090"
   $env:SERVIDOR_HOST="<IP_DA_MAQUINA_A>"
   python servidor/main_servidor.py
