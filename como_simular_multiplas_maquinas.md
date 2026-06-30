@@ -117,3 +117,41 @@ Com as duas telas abertas (uma na Máquina A e outra na Máquina B):
 
 3. **Interação:**
    * Qualquer desenho, forma ou alteração feita na tela de uma das máquinas será sincronizada instantaneamente na outra!
+
+---
+
+## ⚠️ Solução de Problemas: `ConnectionClosedError` no Windows
+
+Se ao fazer login ou entrar em uma sala o cliente crashar com o erro:
+```
+Pyro5.errors.ConnectionClosedError: receiving: not enough data
+```
+
+### Causa
+O cliente Pyro5 registra um Daemon local para receber callbacks do servidor. O IP desse Daemon é obtido via `socket.gethostbyname(socket.gethostname())`. Em máquinas Windows com **WSL, Hyper-V ou Docker Desktop** instalados, esse comando retorna o IP do **adaptador de rede virtual** (ex: `172.25.208.1`) em vez do IP real da rede local (ex: `192.168.0.106`).
+
+O servidor tenta enviar o callback para o IP virtual, que não é acessível pela rede, e a conexão é encerrada.
+
+### Diagnóstico
+Verifique qual IP o Python está resolvendo:
+```powershell
+python -c "import socket; print(socket.gethostbyname(socket.gethostname()))"
+```
+Se o resultado **não** for o IP da sua rede local (ex: `192.168.x.x`), aplique a solução abaixo.
+
+### Alterar a métrica do adaptador de rede (Recomendada)
+Dê prioridade ao adaptador Wi-Fi/Ethernet real para que o Windows resolva o hostname para o IP correto. Execute como **Administrador**:
+```powershell
+# Descubra o ifIndex do seu adaptador real (Wi-Fi ou Ethernet)
+Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Select-Object Name, ifIndex
+
+# Defina a métrica mais baixa (maior prioridade) para o adaptador real
+Set-NetIPInterface -InterfaceIndex <ifIndex_do_Wi-Fi_ou_Ethernet> -InterfaceMetric 10
+```
+
+### Verificação
+Após aplicar a solução, confirme que o IP está correto:
+```powershell
+python -c "import socket; print(socket.gethostbyname(socket.gethostname()))"
+# Deve retornar o IP da sua rede local (ex: 192.168.0.106)
+```
